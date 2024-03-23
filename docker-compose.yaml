@@ -1,0 +1,26 @@
+version: "3.10"
+services:
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root"]
+      interval: 10s
+      start_period: 10s
+
+  web:
+    build:
+      context: ./
+    command: uvicorn main:app --host 0.0.0.0 --port 8080
+    environment:
+      - POSTGRES_URL=postgresql://root:postgres@db:5432/root
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./:/app/
+    ports:
+      - 8080:8080
